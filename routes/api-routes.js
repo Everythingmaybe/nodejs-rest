@@ -4,30 +4,51 @@ const dataService = require('../services/dataService');
 let usersRouter = require('express').Router();
 
 usersRouter.get('/', function(req, res) {
-    res.send(dataService.getUsers());
+    const getUsers = dataService.getUsers();
+
+    getUsers
+        .then((response) => {
+            console.log(response);
+            res.send(response);
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(500).send()
+        })
 });
 
 usersRouter.post('/', function(req, res) {
     const requiredFields = ['name', 'age'];
     const user = req.body;
+    const addUser = dataService.addUser(user);
 
     if (!dataService.checkRequiredData(user, requiredFields)) {
         res.status(400).send('Not all parameters passed');
     } else {
-        dataService.addUser(user);
-        res.status(201).send()
+        addUser
+            .then(function(response){
+                res.status(201).send('User was created');
+            })
+            .catch((error) => {
+                console.log(error);
+                res.status(500).send('')
+            })
     }
 });
 
 usersRouter.get('/:id', function(req, res) {
     const id = req.params.id;
-    const response = dataService.getUsers(id);
+    const getUsers = dataService.getUsers(id);
 
-    if (response) {
-        res.send(response);
-    } else {
-        res.status(404).send('User not found');
-    }
+    getUsers
+        .then(function(response){
+            console.log(response);
+            res.send(response);
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(500).send()
+        })
 });
 
 usersRouter.put('/:id', function(req, res) {

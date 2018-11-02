@@ -1,28 +1,39 @@
 const uniqid = require('uniqid');
 const fs = require("fs");
+
+const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
+
+const databaseUrl = require('../config/database').url;
 const mockFile = "mock/users.json";
 
-function getUsers(_id) {
-    const id = _id || 'all';
-    const usersList = JSON.parse(fs.readFileSync(mockFile, 'utf8')) || [];
+// Connect to mongodb
+mongoose.connect(databaseUrl, function (err) {
+    if (err) throw err;
+    console.log('Successfully connected');
+});
 
-    if (id === 'all') {
-        return usersList;
-    } else {
-        return usersList.find((item) => id == item.id)
-    }
+// User scheme
+const userScheme = mongoose.Schema({
+    name: String,
+    age: String
+});
+
+const User = mongoose.model('User', userScheme);
+
+function getUsers(_id) {
+
+    const id = _id ? {_id: _id} : {};
+    return User.find(id).exec();
 }
 
 function addUser(_user) {
     const user = {
-        id: uniqid(),
         name: _user.name,
         age: _user.age
     };
-    let usersList = JSON.parse(fs.readFileSync(mockFile, 'utf8')) || [];
 
-    usersList.push(user);
-    fs.writeFileSync("mock/users.json", JSON.stringify(usersList));
+    return User.create(user);
 }
 
 function editUser(_user) {
