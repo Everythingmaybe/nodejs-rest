@@ -1,4 +1,3 @@
-const uniqid = require('uniqid');
 const fs = require("fs");
 
 const mongoose = require('mongoose');
@@ -17,12 +16,11 @@ mongoose.connect(databaseUrl, function (err) {
 const userScheme = mongoose.Schema({
     name: String,
     age: String
-});
+}, { versionKey: false });
 
 const User = mongoose.model('User', userScheme);
 
 function getUsers(_id) {
-
     const id = _id ? {_id: _id} : {};
     return User.find(id).exec();
 }
@@ -37,34 +35,17 @@ function addUser(_user) {
 }
 
 function editUser(_user) {
+    const id = _user.id;
     const user = {
-        id: _user.id,
         name: _user.name,
         age: _user.age
     };
-    let usersList = JSON.parse(fs.readFileSync(mockFile, 'utf8')) || [];
-    const itemIndex = usersList.findIndex((item) => item.id == user.id);
-
-    if (itemIndex !== -1) {
-        usersList[itemIndex] = {...user};
-        fs.writeFileSync("mock/users.json", JSON.stringify(usersList));
-        return true;
-    } else {
-        return false;
-    }
+    return User.findByIdAndUpdate(id, user, {new: true});
 }
 
 function deleteUser(id) {
-    const usersList = JSON.parse(fs.readFileSync(mockFile, 'utf8')) || [];
-    const itemIndex = usersList.findIndex((item) => item.id == id);
-
-    if (itemIndex !== -1) {
-        usersList.splice(itemIndex, 1);
-        fs.writeFileSync("mock/users.json", JSON.stringify(usersList));
-        return true;
-    } else {
-        return false;
-    }
+    return User.findByIdAndRemove(id);
+    // return User.remove({});
 }
 
 function checkRequiredData(_obj, _fields) {

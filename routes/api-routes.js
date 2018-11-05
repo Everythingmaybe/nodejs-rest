@@ -42,7 +42,6 @@ usersRouter.get('/:id', function(req, res) {
 
     getUsers
         .then(function(response){
-            console.log(response);
             res.send(response);
         })
         .catch((error) => {
@@ -58,27 +57,42 @@ usersRouter.put('/:id', function(req, res) {
         id: id,
         ...req.body
     };
+    const updateUser = dataService.editUser(user);
 
     if (!dataService.checkRequiredData(user, requiredFields)) {
         res.status(400).send('Not all parameters passed');
     } else {
-        const updateStatus = dataService.editUser(user);
-        if (updateStatus) {
-            res.status(200).send()
-        } else {
-            res.status(404).send('User not found')
-        }
+        updateUser
+            .then(function(response){
+                if (response) {
+                    res.status(200).send(response);
+                } else {
+                    res.status(404).send('User not found');
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+                res.status(500).send()
+            })
     }
 });
 
 usersRouter.delete('/:id', function(req, res) {
     const id = req.params.id;
-    const deleteStatus = dataService.deleteUser(id);
-    if (deleteStatus) {
-        res.status(200).send();
-    } else {
-        res.status(404).send('User not found');
-    }
+    const deleteUser = dataService.deleteUser(id);
+
+    deleteUser
+        .then(function(response){
+            if (response) {
+                res.status(200).send(response);
+            } else {
+                res.status(404).send('User not found');
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(500).send()
+        })
 });
 
 module.exports = usersRouter;
